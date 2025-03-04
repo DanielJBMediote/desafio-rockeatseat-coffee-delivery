@@ -1,10 +1,14 @@
-import { PropsWithChildren, useEffect, useReducer } from "react";
+import { PropsWithChildren, useContext, useEffect, useReducer } from "react";
 import { CheckFormDataType, CheckoutContext } from ".";
 import { useCheckoutReducer } from "../../reducer/Checkout";
 import { submitCheckoutData } from "../../reducer/Checkout/actions";
+import { CoffeeDeliveryContext } from "../CoffeDeliveryContext";
 
 
 export function CheckoutProvider({ children }: PropsWithChildren) {
+
+  const { coffeList } = useContext(CoffeeDeliveryContext)
+
   const [checkoutState, dispatch] = useReducer(useCheckoutReducer, {
     location: null, payment_method: null
   }, (initialState) => {
@@ -17,6 +21,11 @@ export function CheckoutProvider({ children }: PropsWithChildren) {
   })
 
   function onSubmit(data: CheckFormDataType) {
+
+    if (!coffeList || coffeList.length === 0) {
+      throw Error('Não há cafés para serem processados.')
+    }
+
     dispatch(submitCheckoutData(data));
   }
 
