@@ -25,8 +25,10 @@ export function Checkout() {
   })
 
   function handleCheckout(data: CheckFormDataType) {
-    onSubmit(data)
-    navigate("/tracking")
+    console.log(data);
+
+    // onSubmit(data)
+    // navigate("/tracking")
   }
 
   const { coffeList, checkoutValues } = useContext(CoffeeDeliveryContext)
@@ -63,7 +65,7 @@ export function Checkout() {
               color="purple"
               icon={CurrencyDollar}
             />
-            <RadioButton.Group {...methods.register("payment_method")}>
+            <RadioButton.Group name="payment_method">
               <RadioButton.Option value={PaymentMethod.CREDIT_CARD} label="Cartão de Crédito" icon={CreditCard} />
               <RadioButton.Option value={PaymentMethod.DEBIT_CARD} label="Cartão de Débito" icon={Bank} />
               <RadioButton.Option value={PaymentMethod.MONEY} label="Dinheiro" icon={Money} />
