@@ -1,4 +1,4 @@
-import { Bank, CreditCard, CurrencyDollar, MapPin, Money } from "@phosphor-icons/react"
+import { Bank, CreditCard, CurrencyDollar, MapPin, Money, Ticket } from "@phosphor-icons/react"
 // import { PaymentMethod } from '@types/paymentMethods'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useContext } from "react"
@@ -14,6 +14,22 @@ import { CheckoutItems } from "./CheckoutIItems"
 import { FormInput } from "./Form/FormInput"
 import { FormTitle } from "./Form/FormTitle"
 
+interface ViaCepResponseData {
+  cep: string;
+  logradouro: string;
+  complemento: string;
+  unidade: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  estado: string;
+  regiao: string;
+  ibge: string;
+  gia: string;
+  ddd: string;
+  siafi: string;
+}
+
 export function Checkout() {
 
   const navigate = useNavigate()
@@ -24,11 +40,26 @@ export function Checkout() {
     resolver: zodResolver(checkoutFormSchema)
   })
 
-  function handleCheckout(data: CheckFormDataType) {
-    console.log(data);
+  async function handleFields() {
+    const cep = methods.watch().location?.postal_code
 
-    // onSubmit(data)
-    // navigate("/tracking")
+    if (cep && cep.length === 8) {
+      const cepAPI = `https://viacep.com.br/ws/${cep}/json`;
+
+      const json: ViaCepResponseData = await fetch(cepAPI)
+        .then((response) => { return response })
+        .then((response) => { return response.json() })
+
+      methods.setValue("location.street", json.logradouro)
+      methods.setValue("location.neighborhood", json.bairro)
+      methods.setValue("location.city", json.localidade)
+      methods.setValue("location.uf", json.uf)
+    }
+  }
+
+  function handleCheckout(data: CheckFormDataType) {
+    onSubmit(data)
+    navigate("/tracking")
   }
 
   const { coffeList, checkoutValues } = useContext(CoffeeDeliveryContext)
@@ -49,7 +80,7 @@ export function Checkout() {
               icon={MapPin}
             />
             <div className="grid grid-cols-12 gap-4">
-              <FormInput required colSpan={4} placeholder="CEP" {...methods.register("location.postal_code")} />
+              <FormInput required colSpan={4} placeholder="CEP" {...methods.register("location.postal_code")} onBlur={handleFields} />
               <FormInput required placeholder="Rua" {...methods.register("location.street")} />
               <FormInput required colSpan={4} placeholder="Numero" {...methods.register("location.number")} />
               <FormInput colSpan={8} placeholder="Complemento" isOptional  {...methods.register("location.complement")} />
@@ -69,9 +100,9 @@ export function Checkout() {
               <RadioButton.Option value={PaymentMethod.CREDIT_CARD} label="Cartão de Crédito" icon={CreditCard} />
               <RadioButton.Option value={PaymentMethod.DEBIT_CARD} label="Cartão de Débito" icon={Bank} />
               <RadioButton.Option value={PaymentMethod.MONEY} label="Dinheiro" icon={Money} />
+              <RadioButton.Option value="food_ticket" label="Vale Alimentação" icon={Ticket} />
               {/* <RadioButton.Option value="pix" label="Pix" icon={PixLogo} />
-              <RadioButton.Option value="paypla" label="Cartão PayPal" icon={PaypalLogo} />
-              <RadioButton.Option value="food_ticket" label="Vale Alimentação" icon={Ticket} /> */}
+              <RadioButton.Option value="paypla" label="Cartão PayPal" icon={PaypalLogo} /> */}
             </RadioButton.Group>
           </BaseCard>
         </div>
